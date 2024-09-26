@@ -1,1 +1,829 @@
-{"metadata":{"kernelspec":{"language":"python","display_name":"Python 3","name":"python3"},"language_info":{"name":"python","version":"3.10.14","mimetype":"text/x-python","codemirror_mode":{"name":"ipython","version":3},"pygments_lexer":"ipython3","nbconvert_exporter":"python","file_extension":".py"},"kaggle":{"accelerator":"none","dataSources":[{"sourceId":3948,"databundleVersionId":32624,"sourceType":"competition"}],"dockerImageVersionId":30761,"isInternetEnabled":false,"language":"python","sourceType":"notebook","isGpuEnabled":false}},"nbformat_minor":4,"nbformat":4,"cells":[{"cell_type":"code","source":"# This Python 3 environment comes with many helpful analytics libraries installed\n# It is defined by the kaggle/python Docker image: https://github.com/kaggle/docker-python\n# For example, here's several helpful packages to load\n\nimport numpy as np # linear algebra\nimport pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)\n\n# Input data files are available in the read-only \"../input/\" directory\n# For example, running this (by clicking run or pressing Shift+Enter) will list all files under the input directory\n\nimport os\nfor dirname, _, filenames in os.walk('/kaggle/input'):\n    for filename in filenames:\n        print(os.path.join(dirname, filename))\n\n# You can write up to 20GB to the current directory (/kaggle/working/) that gets preserved as output when you create a version using \"Save & Run All\" \n# You can also write temporary files to /kaggle/temp/, but they won't be saved outside of the current session","metadata":{"_uuid":"8f2839f25d086af736a60e9eeb907d3b93b6e0e5","_cell_guid":"b1076dfc-b9ad-4769-8c92-a6c4dae69d19","execution":{"iopub.status.busy":"2024-09-26T07:02:45.231057Z","iopub.execute_input":"2024-09-26T07:02:45.231997Z","iopub.status.idle":"2024-09-26T07:02:45.239178Z","shell.execute_reply.started":"2024-09-26T07:02:45.231939Z","shell.execute_reply":"2024-09-26T07:02:45.237985Z"},"trusted":true},"execution_count":11,"outputs":[{"name":"stdout","text":"/kaggle/input/bike-sharing-demand/sampleSubmission.csv\n/kaggle/input/bike-sharing-demand/train.csv\n/kaggle/input/bike-sharing-demand/test.csv\n","output_type":"stream"}]},{"cell_type":"code","source":"train_data = pd.read_csv('/kaggle/input/bike-sharing-demand/train.csv')\ntest_data = pd.read_csv('/kaggle/input/bike-sharing-demand/test.csv')\n\nprint(train_data.head())\nprint(test_data.head())\n","metadata":{"execution":{"iopub.status.busy":"2024-09-26T07:02:47.137630Z","iopub.execute_input":"2024-09-26T07:02:47.138050Z","iopub.status.idle":"2024-09-26T07:02:47.187080Z","shell.execute_reply.started":"2024-09-26T07:02:47.138009Z","shell.execute_reply":"2024-09-26T07:02:47.185976Z"},"trusted":true},"execution_count":12,"outputs":[{"name":"stdout","text":"              datetime  season  holiday  workingday  weather  temp   atemp  \\\n0  2011-01-01 00:00:00       1        0           0        1  9.84  14.395   \n1  2011-01-01 01:00:00       1        0           0        1  9.02  13.635   \n2  2011-01-01 02:00:00       1        0           0        1  9.02  13.635   \n3  2011-01-01 03:00:00       1        0           0        1  9.84  14.395   \n4  2011-01-01 04:00:00       1        0           0        1  9.84  14.395   \n\n   humidity  windspeed  casual  registered  count  \n0        81        0.0       3          13     16  \n1        80        0.0       8          32     40  \n2        80        0.0       5          27     32  \n3        75        0.0       3          10     13  \n4        75        0.0       0           1      1  \n              datetime  season  holiday  workingday  weather   temp   atemp  \\\n0  2011-01-20 00:00:00       1        0           1        1  10.66  11.365   \n1  2011-01-20 01:00:00       1        0           1        1  10.66  13.635   \n2  2011-01-20 02:00:00       1        0           1        1  10.66  13.635   \n3  2011-01-20 03:00:00       1        0           1        1  10.66  12.880   \n4  2011-01-20 04:00:00       1        0           1        1  10.66  12.880   \n\n   humidity  windspeed  \n0        56    26.0027  \n1        56     0.0000  \n2        56     0.0000  \n3        56    11.0014  \n4        56    11.0014  \n","output_type":"stream"}]},{"cell_type":"code","source":"train_data.info()\n\ntrain_data.describe()\n\nprint(train_data.isnull().sum())","metadata":{"execution":{"iopub.status.busy":"2024-09-26T07:02:50.074180Z","iopub.execute_input":"2024-09-26T07:02:50.074719Z","iopub.status.idle":"2024-09-26T07:02:50.116151Z","shell.execute_reply.started":"2024-09-26T07:02:50.074667Z","shell.execute_reply":"2024-09-26T07:02:50.115084Z"},"trusted":true},"execution_count":13,"outputs":[{"name":"stdout","text":"<class 'pandas.core.frame.DataFrame'>\nRangeIndex: 10886 entries, 0 to 10885\nData columns (total 12 columns):\n #   Column      Non-Null Count  Dtype  \n---  ------      --------------  -----  \n 0   datetime    10886 non-null  object \n 1   season      10886 non-null  int64  \n 2   holiday     10886 non-null  int64  \n 3   workingday  10886 non-null  int64  \n 4   weather     10886 non-null  int64  \n 5   temp        10886 non-null  float64\n 6   atemp       10886 non-null  float64\n 7   humidity    10886 non-null  int64  \n 8   windspeed   10886 non-null  float64\n 9   casual      10886 non-null  int64  \n 10  registered  10886 non-null  int64  \n 11  count       10886 non-null  int64  \ndtypes: float64(3), int64(8), object(1)\nmemory usage: 1020.7+ KB\ndatetime      0\nseason        0\nholiday       0\nworkingday    0\nweather       0\ntemp          0\natemp         0\nhumidity      0\nwindspeed     0\ncasual        0\nregistered    0\ncount         0\ndtype: int64\n","output_type":"stream"}]},{"cell_type":"code","source":"#convert the datetime column to pandas datetime format\ntrain_data['datetime'] = pd.to_datetime(train_data['datetime'])\n\n#extracting new features: hour, day, month, year\ntrain_data['hour'] = train_data['datetime'].dt.hour\ntrain_data['day'] = train_data['datetime'].dt.day\ntrain_data['month'] = train_data['datetime'].dt.month\ntrain_data['year'] = train_data['datetime'].dt.year\n\n#check the updated DataFrame\ntrain_data.head()","metadata":{"execution":{"iopub.status.busy":"2024-09-26T07:02:52.582986Z","iopub.execute_input":"2024-09-26T07:02:52.583480Z","iopub.status.idle":"2024-09-26T07:02:52.612528Z","shell.execute_reply.started":"2024-09-26T07:02:52.583437Z","shell.execute_reply":"2024-09-26T07:02:52.611256Z"},"trusted":true},"execution_count":14,"outputs":[{"execution_count":14,"output_type":"execute_result","data":{"text/plain":"             datetime  season  holiday  workingday  weather  temp   atemp  \\\n0 2011-01-01 00:00:00       1        0           0        1  9.84  14.395   \n1 2011-01-01 01:00:00       1        0           0        1  9.02  13.635   \n2 2011-01-01 02:00:00       1        0           0        1  9.02  13.635   \n3 2011-01-01 03:00:00       1        0           0        1  9.84  14.395   \n4 2011-01-01 04:00:00       1        0           0        1  9.84  14.395   \n\n   humidity  windspeed  casual  registered  count  hour  day  month  year  \n0        81        0.0       3          13     16     0    1      1  2011  \n1        80        0.0       8          32     40     1    1      1  2011  \n2        80        0.0       5          27     32     2    1      1  2011  \n3        75        0.0       3          10     13     3    1      1  2011  \n4        75        0.0       0           1      1     4    1      1  2011  ","text/html":"<div>\n<style scoped>\n    .dataframe tbody tr th:only-of-type {\n        vertical-align: middle;\n    }\n\n    .dataframe tbody tr th {\n        vertical-align: top;\n    }\n\n    .dataframe thead th {\n        text-align: right;\n    }\n</style>\n<table border=\"1\" class=\"dataframe\">\n  <thead>\n    <tr style=\"text-align: right;\">\n      <th></th>\n      <th>datetime</th>\n      <th>season</th>\n      <th>holiday</th>\n      <th>workingday</th>\n      <th>weather</th>\n      <th>temp</th>\n      <th>atemp</th>\n      <th>humidity</th>\n      <th>windspeed</th>\n      <th>casual</th>\n      <th>registered</th>\n      <th>count</th>\n      <th>hour</th>\n      <th>day</th>\n      <th>month</th>\n      <th>year</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <th>0</th>\n      <td>2011-01-01 00:00:00</td>\n      <td>1</td>\n      <td>0</td>\n      <td>0</td>\n      <td>1</td>\n      <td>9.84</td>\n      <td>14.395</td>\n      <td>81</td>\n      <td>0.0</td>\n      <td>3</td>\n      <td>13</td>\n      <td>16</td>\n      <td>0</td>\n      <td>1</td>\n      <td>1</td>\n      <td>2011</td>\n    </tr>\n    <tr>\n      <th>1</th>\n      <td>2011-01-01 01:00:00</td>\n      <td>1</td>\n      <td>0</td>\n      <td>0</td>\n      <td>1</td>\n      <td>9.02</td>\n      <td>13.635</td>\n      <td>80</td>\n      <td>0.0</td>\n      <td>8</td>\n      <td>32</td>\n      <td>40</td>\n      <td>1</td>\n      <td>1</td>\n      <td>1</td>\n      <td>2011</td>\n    </tr>\n    <tr>\n      <th>2</th>\n      <td>2011-01-01 02:00:00</td>\n      <td>1</td>\n      <td>0</td>\n      <td>0</td>\n      <td>1</td>\n      <td>9.02</td>\n      <td>13.635</td>\n      <td>80</td>\n      <td>0.0</td>\n      <td>5</td>\n      <td>27</td>\n      <td>32</td>\n      <td>2</td>\n      <td>1</td>\n      <td>1</td>\n      <td>2011</td>\n    </tr>\n    <tr>\n      <th>3</th>\n      <td>2011-01-01 03:00:00</td>\n      <td>1</td>\n      <td>0</td>\n      <td>0</td>\n      <td>1</td>\n      <td>9.84</td>\n      <td>14.395</td>\n      <td>75</td>\n      <td>0.0</td>\n      <td>3</td>\n      <td>10</td>\n      <td>13</td>\n      <td>3</td>\n      <td>1</td>\n      <td>1</td>\n      <td>2011</td>\n    </tr>\n    <tr>\n      <th>4</th>\n      <td>2011-01-01 04:00:00</td>\n      <td>1</td>\n      <td>0</td>\n      <td>0</td>\n      <td>1</td>\n      <td>9.84</td>\n      <td>14.395</td>\n      <td>75</td>\n      <td>0.0</td>\n      <td>0</td>\n      <td>1</td>\n      <td>1</td>\n      <td>4</td>\n      <td>1</td>\n      <td>1</td>\n      <td>2011</td>\n    </tr>\n  </tbody>\n</table>\n</div>"},"metadata":{}}]},{"cell_type":"code","source":"#dropping irrelevant columns\ntrain_data = train_data.drop(columns=['casual', 'registered', 'datetime'])\n\n#check the DataFrame to confirm\ntrain_data.head()","metadata":{"execution":{"iopub.status.busy":"2024-09-26T07:02:55.931073Z","iopub.execute_input":"2024-09-26T07:02:55.931929Z","iopub.status.idle":"2024-09-26T07:02:55.950867Z","shell.execute_reply.started":"2024-09-26T07:02:55.931882Z","shell.execute_reply":"2024-09-26T07:02:55.949779Z"},"trusted":true},"execution_count":15,"outputs":[{"execution_count":15,"output_type":"execute_result","data":{"text/plain":"   season  holiday  workingday  weather  temp   atemp  humidity  windspeed  \\\n0       1        0           0        1  9.84  14.395        81        0.0   \n1       1        0           0        1  9.02  13.635        80        0.0   \n2       1        0           0        1  9.02  13.635        80        0.0   \n3       1        0           0        1  9.84  14.395        75        0.0   \n4       1        0           0        1  9.84  14.395        75        0.0   \n\n   count  hour  day  month  year  \n0     16     0    1      1  2011  \n1     40     1    1      1  2011  \n2     32     2    1      1  2011  \n3     13     3    1      1  2011  \n4      1     4    1      1  2011  ","text/html":"<div>\n<style scoped>\n    .dataframe tbody tr th:only-of-type {\n        vertical-align: middle;\n    }\n\n    .dataframe tbody tr th {\n        vertical-align: top;\n    }\n\n    .dataframe thead th {\n        text-align: right;\n    }\n</style>\n<table border=\"1\" class=\"dataframe\">\n  <thead>\n    <tr style=\"text-align: right;\">\n      <th></th>\n      <th>season</th>\n      <th>holiday</th>\n      <th>workingday</th>\n      <th>weather</th>\n      <th>temp</th>\n      <th>atemp</th>\n      <th>humidity</th>\n      <th>windspeed</th>\n      <th>count</th>\n      <th>hour</th>\n      <th>day</th>\n      <th>month</th>\n      <th>year</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <th>0</th>\n      <td>1</td>\n      <td>0</td>\n      <td>0</td>\n      <td>1</td>\n      <td>9.84</td>\n      <td>14.395</td>\n      <td>81</td>\n      <td>0.0</td>\n      <td>16</td>\n      <td>0</td>\n      <td>1</td>\n      <td>1</td>\n      <td>2011</td>\n    </tr>\n    <tr>\n      <th>1</th>\n      <td>1</td>\n      <td>0</td>\n      <td>0</td>\n      <td>1</td>\n      <td>9.02</td>\n      <td>13.635</td>\n      <td>80</td>\n      <td>0.0</td>\n      <td>40</td>\n      <td>1</td>\n      <td>1</td>\n      <td>1</td>\n      <td>2011</td>\n    </tr>\n    <tr>\n      <th>2</th>\n      <td>1</td>\n      <td>0</td>\n      <td>0</td>\n      <td>1</td>\n      <td>9.02</td>\n      <td>13.635</td>\n      <td>80</td>\n      <td>0.0</td>\n      <td>32</td>\n      <td>2</td>\n      <td>1</td>\n      <td>1</td>\n      <td>2011</td>\n    </tr>\n    <tr>\n      <th>3</th>\n      <td>1</td>\n      <td>0</td>\n      <td>0</td>\n      <td>1</td>\n      <td>9.84</td>\n      <td>14.395</td>\n      <td>75</td>\n      <td>0.0</td>\n      <td>13</td>\n      <td>3</td>\n      <td>1</td>\n      <td>1</td>\n      <td>2011</td>\n    </tr>\n    <tr>\n      <th>4</th>\n      <td>1</td>\n      <td>0</td>\n      <td>0</td>\n      <td>1</td>\n      <td>9.84</td>\n      <td>14.395</td>\n      <td>75</td>\n      <td>0.0</td>\n      <td>1</td>\n      <td>4</td>\n      <td>1</td>\n      <td>1</td>\n      <td>2011</td>\n    </tr>\n  </tbody>\n</table>\n</div>"},"metadata":{}}]},{"cell_type":"code","source":"from sklearn.model_selection import train_test_split\n\n#Features (X) and target (y)\nX = train_data.drop(columns=['count']) #Features\ny = train_data['count'] #Target variable\n\n#splitting the dataset into training and validation sets\nX_train, X_val, y_train, y_val = train_test_split(X, y, test_size = 0.2, random_state=42)\n\n#check the shapes of the resulting datasets\nprint(X_train.shape, X_val.shape, y_train.shape, y_val.shape)","metadata":{"execution":{"iopub.status.busy":"2024-09-26T07:02:58.105934Z","iopub.execute_input":"2024-09-26T07:02:58.106387Z","iopub.status.idle":"2024-09-26T07:02:58.118556Z","shell.execute_reply.started":"2024-09-26T07:02:58.106348Z","shell.execute_reply":"2024-09-26T07:02:58.117530Z"},"trusted":true},"execution_count":16,"outputs":[{"name":"stdout","text":"(8708, 12) (2178, 12) (8708,) (2178,)\n","output_type":"stream"}]},{"cell_type":"code","source":"best_params = {\n    'n_estimators': 50,  \n    'max_depth': 30,\n    'min_samples_leaf': 2,\n    'bootstrap': True  \n}","metadata":{"execution":{"iopub.status.busy":"2024-09-26T07:03:00.192378Z","iopub.execute_input":"2024-09-26T07:03:00.192774Z","iopub.status.idle":"2024-09-26T07:03:00.198158Z","shell.execute_reply.started":"2024-09-26T07:03:00.192737Z","shell.execute_reply":"2024-09-26T07:03:00.197048Z"},"trusted":true},"execution_count":17,"outputs":[]},{"cell_type":"code","source":"from sklearn.ensemble import RandomForestRegressor\nfrom sklearn.metrics import mean_squared_log_error\nimport numpy as np\n\n# Initialize the Random Forest model with best parameters\nmodel = RandomForestRegressor(\n    n_estimators=best_params['n_estimators'],\n    max_depth=best_params['max_depth'],\n    min_samples_leaf=best_params['min_samples_leaf'],\n    bootstrap=best_params['bootstrap']\n)\n\n# Fit the model on the training data\nmodel.fit(X_train, y_train)","metadata":{"execution":{"iopub.status.busy":"2024-09-26T07:03:02.642440Z","iopub.execute_input":"2024-09-26T07:03:02.642877Z","iopub.status.idle":"2024-09-26T07:03:04.097125Z","shell.execute_reply.started":"2024-09-26T07:03:02.642836Z","shell.execute_reply":"2024-09-26T07:03:04.095910Z"},"trusted":true},"execution_count":18,"outputs":[{"execution_count":18,"output_type":"execute_result","data":{"text/plain":"RandomForestRegressor(max_depth=30, min_samples_leaf=2, n_estimators=50)","text/html":"<style>#sk-container-id-2 {color: black;background-color: white;}#sk-container-id-2 pre{padding: 0;}#sk-container-id-2 div.sk-toggleable {background-color: white;}#sk-container-id-2 label.sk-toggleable__label {cursor: pointer;display: block;width: 100%;margin-bottom: 0;padding: 0.3em;box-sizing: border-box;text-align: center;}#sk-container-id-2 label.sk-toggleable__label-arrow:before {content: \"▸\";float: left;margin-right: 0.25em;color: #696969;}#sk-container-id-2 label.sk-toggleable__label-arrow:hover:before {color: black;}#sk-container-id-2 div.sk-estimator:hover label.sk-toggleable__label-arrow:before {color: black;}#sk-container-id-2 div.sk-toggleable__content {max-height: 0;max-width: 0;overflow: hidden;text-align: left;background-color: #f0f8ff;}#sk-container-id-2 div.sk-toggleable__content pre {margin: 0.2em;color: black;border-radius: 0.25em;background-color: #f0f8ff;}#sk-container-id-2 input.sk-toggleable__control:checked~div.sk-toggleable__content {max-height: 200px;max-width: 100%;overflow: auto;}#sk-container-id-2 input.sk-toggleable__control:checked~label.sk-toggleable__label-arrow:before {content: \"▾\";}#sk-container-id-2 div.sk-estimator input.sk-toggleable__control:checked~label.sk-toggleable__label {background-color: #d4ebff;}#sk-container-id-2 div.sk-label input.sk-toggleable__control:checked~label.sk-toggleable__label {background-color: #d4ebff;}#sk-container-id-2 input.sk-hidden--visually {border: 0;clip: rect(1px 1px 1px 1px);clip: rect(1px, 1px, 1px, 1px);height: 1px;margin: -1px;overflow: hidden;padding: 0;position: absolute;width: 1px;}#sk-container-id-2 div.sk-estimator {font-family: monospace;background-color: #f0f8ff;border: 1px dotted black;border-radius: 0.25em;box-sizing: border-box;margin-bottom: 0.5em;}#sk-container-id-2 div.sk-estimator:hover {background-color: #d4ebff;}#sk-container-id-2 div.sk-parallel-item::after {content: \"\";width: 100%;border-bottom: 1px solid gray;flex-grow: 1;}#sk-container-id-2 div.sk-label:hover label.sk-toggleable__label {background-color: #d4ebff;}#sk-container-id-2 div.sk-serial::before {content: \"\";position: absolute;border-left: 1px solid gray;box-sizing: border-box;top: 0;bottom: 0;left: 50%;z-index: 0;}#sk-container-id-2 div.sk-serial {display: flex;flex-direction: column;align-items: center;background-color: white;padding-right: 0.2em;padding-left: 0.2em;position: relative;}#sk-container-id-2 div.sk-item {position: relative;z-index: 1;}#sk-container-id-2 div.sk-parallel {display: flex;align-items: stretch;justify-content: center;background-color: white;position: relative;}#sk-container-id-2 div.sk-item::before, #sk-container-id-2 div.sk-parallel-item::before {content: \"\";position: absolute;border-left: 1px solid gray;box-sizing: border-box;top: 0;bottom: 0;left: 50%;z-index: -1;}#sk-container-id-2 div.sk-parallel-item {display: flex;flex-direction: column;z-index: 1;position: relative;background-color: white;}#sk-container-id-2 div.sk-parallel-item:first-child::after {align-self: flex-end;width: 50%;}#sk-container-id-2 div.sk-parallel-item:last-child::after {align-self: flex-start;width: 50%;}#sk-container-id-2 div.sk-parallel-item:only-child::after {width: 0;}#sk-container-id-2 div.sk-dashed-wrapped {border: 1px dashed gray;margin: 0 0.4em 0.5em 0.4em;box-sizing: border-box;padding-bottom: 0.4em;background-color: white;}#sk-container-id-2 div.sk-label label {font-family: monospace;font-weight: bold;display: inline-block;line-height: 1.2em;}#sk-container-id-2 div.sk-label-container {text-align: center;}#sk-container-id-2 div.sk-container {/* jupyter's `normalize.less` sets `[hidden] { display: none; }` but bootstrap.min.css set `[hidden] { display: none !important; }` so we also need the `!important` here to be able to override the default hidden behavior on the sphinx rendered scikit-learn.org. See: https://github.com/scikit-learn/scikit-learn/issues/21755 */display: inline-block !important;position: relative;}#sk-container-id-2 div.sk-text-repr-fallback {display: none;}</style><div id=\"sk-container-id-2\" class=\"sk-top-container\"><div class=\"sk-text-repr-fallback\"><pre>RandomForestRegressor(max_depth=30, min_samples_leaf=2, n_estimators=50)</pre><b>In a Jupyter environment, please rerun this cell to show the HTML representation or trust the notebook. <br />On GitHub, the HTML representation is unable to render, please try loading this page with nbviewer.org.</b></div><div class=\"sk-container\" hidden><div class=\"sk-item\"><div class=\"sk-estimator sk-toggleable\"><input class=\"sk-toggleable__control sk-hidden--visually\" id=\"sk-estimator-id-2\" type=\"checkbox\" checked><label for=\"sk-estimator-id-2\" class=\"sk-toggleable__label sk-toggleable__label-arrow\">RandomForestRegressor</label><div class=\"sk-toggleable__content\"><pre>RandomForestRegressor(max_depth=30, min_samples_leaf=2, n_estimators=50)</pre></div></div></div></div></div>"},"metadata":{}}]},{"cell_type":"code","source":"#convert the datetime column to pandas datetime format\ntest_data['datetime'] = pd.to_datetime(test_data['datetime'])\n\n#extracting new features: hour, day, month, year\ntest_data['hour'] = test_data['datetime'].dt.hour\ntest_data['day'] = test_data['datetime'].dt.day\ntest_data['month'] = test_data['datetime'].dt.month\ntest_data['year'] = test_data['datetime'].dt.year","metadata":{"execution":{"iopub.status.busy":"2024-09-26T07:03:09.476778Z","iopub.execute_input":"2024-09-26T07:03:09.477166Z","iopub.status.idle":"2024-09-26T07:03:09.490865Z","shell.execute_reply.started":"2024-09-26T07:03:09.477131Z","shell.execute_reply":"2024-09-26T07:03:09.489813Z"},"trusted":true},"execution_count":19,"outputs":[]},{"cell_type":"code","source":"# Keep 'datetime' for submission, but do not use it in prediction\ntest_data_for_model = test_data.drop(columns=['datetime'])  # Drop 'datetime' for model input\n\n# reorder columns or add missing columns, like in your training data\nmissing_cols = set(X_train.columns) - set(test_data_for_model.columns)\nfor col in missing_cols:\n    test_data_for_model[col] = 0  # Add missing columns with default value 0\n\ntest_data_for_model = test_data_for_model[X_train.columns]  # Reorder columns to match training\n\n# Make predictions using the trained model\npredictions = model.predict(test_data_for_model)","metadata":{"execution":{"iopub.status.busy":"2024-09-26T07:04:38.104462Z","iopub.execute_input":"2024-09-26T07:04:38.104878Z","iopub.status.idle":"2024-09-26T07:04:38.157405Z","shell.execute_reply.started":"2024-09-26T07:04:38.104841Z","shell.execute_reply":"2024-09-26T07:04:38.156239Z"},"trusted":true},"execution_count":20,"outputs":[]},{"cell_type":"code","source":"# Prepare the submission file\nsubmission = pd.DataFrame({\n    \"datetime\": test_data[\"datetime\"],  # Use 'datetime' from the test set\n    \"count\": predictions  # Use the predictions as 'count'\n})\n\n# Clip predictions to avoid negative values\nsubmission[\"count\"] = submission[\"count\"].clip(lower=0)\n\n# Save the submission file\nsubmission.to_csv('submission.csv', index=False)","metadata":{"execution":{"iopub.status.busy":"2024-09-26T07:05:17.371334Z","iopub.execute_input":"2024-09-26T07:05:17.371777Z","iopub.status.idle":"2024-09-26T07:05:17.411253Z","shell.execute_reply.started":"2024-09-26T07:05:17.371739Z","shell.execute_reply":"2024-09-26T07:05:17.410157Z"},"trusted":true},"execution_count":21,"outputs":[]}]}
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "id": "cf1363b6",
+   "metadata": {
+    "_cell_guid": "b1076dfc-b9ad-4769-8c92-a6c4dae69d19",
+    "_uuid": "8f2839f25d086af736a60e9eeb907d3b93b6e0e5",
+    "execution": {
+     "iopub.execute_input": "2024-09-26T09:17:05.954056Z",
+     "iopub.status.busy": "2024-09-26T09:17:05.953556Z",
+     "iopub.status.idle": "2024-09-26T09:17:06.993664Z",
+     "shell.execute_reply": "2024-09-26T09:17:06.991579Z"
+    },
+    "papermill": {
+     "duration": 1.052279,
+     "end_time": "2024-09-26T09:17:06.997021",
+     "exception": false,
+     "start_time": "2024-09-26T09:17:05.944742",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "/kaggle/input/bike-sharing-demand/sampleSubmission.csv\n",
+      "/kaggle/input/bike-sharing-demand/train.csv\n",
+      "/kaggle/input/bike-sharing-demand/test.csv\n"
+     ]
+    }
+   ],
+   "source": [
+    "# This Python 3 environment comes with many helpful analytics libraries installed\n",
+    "# It is defined by the kaggle/python Docker image: https://github.com/kaggle/docker-python\n",
+    "# For example, here's several helpful packages to load\n",
+    "\n",
+    "import numpy as np # linear algebra\n",
+    "import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)\n",
+    "\n",
+    "# Input data files are available in the read-only \"../input/\" directory\n",
+    "# For example, running this (by clicking run or pressing Shift+Enter) will list all files under the input directory\n",
+    "\n",
+    "import os\n",
+    "for dirname, _, filenames in os.walk('/kaggle/input'):\n",
+    "    for filename in filenames:\n",
+    "        print(os.path.join(dirname, filename))\n",
+    "\n",
+    "# You can write up to 20GB to the current directory (/kaggle/working/) that gets preserved as output when you create a version using \"Save & Run All\" \n",
+    "# You can also write temporary files to /kaggle/temp/, but they won't be saved outside of the current session"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "id": "c609acf7",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-09-26T09:17:07.010541Z",
+     "iopub.status.busy": "2024-09-26T09:17:07.009470Z",
+     "iopub.status.idle": "2024-09-26T09:17:07.144813Z",
+     "shell.execute_reply": "2024-09-26T09:17:07.142237Z"
+    },
+    "papermill": {
+     "duration": 0.145728,
+     "end_time": "2024-09-26T09:17:07.148072",
+     "exception": false,
+     "start_time": "2024-09-26T09:17:07.002344",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "              datetime  season  holiday  workingday  weather  temp   atemp  \\\n",
+      "0  2011-01-01 00:00:00       1        0           0        1  9.84  14.395   \n",
+      "1  2011-01-01 01:00:00       1        0           0        1  9.02  13.635   \n",
+      "2  2011-01-01 02:00:00       1        0           0        1  9.02  13.635   \n",
+      "3  2011-01-01 03:00:00       1        0           0        1  9.84  14.395   \n",
+      "4  2011-01-01 04:00:00       1        0           0        1  9.84  14.395   \n",
+      "\n",
+      "   humidity  windspeed  casual  registered  count  \n",
+      "0        81        0.0       3          13     16  \n",
+      "1        80        0.0       8          32     40  \n",
+      "2        80        0.0       5          27     32  \n",
+      "3        75        0.0       3          10     13  \n",
+      "4        75        0.0       0           1      1  \n",
+      "              datetime  season  holiday  workingday  weather   temp   atemp  \\\n",
+      "0  2011-01-20 00:00:00       1        0           1        1  10.66  11.365   \n",
+      "1  2011-01-20 01:00:00       1        0           1        1  10.66  13.635   \n",
+      "2  2011-01-20 02:00:00       1        0           1        1  10.66  13.635   \n",
+      "3  2011-01-20 03:00:00       1        0           1        1  10.66  12.880   \n",
+      "4  2011-01-20 04:00:00       1        0           1        1  10.66  12.880   \n",
+      "\n",
+      "   humidity  windspeed  \n",
+      "0        56    26.0027  \n",
+      "1        56     0.0000  \n",
+      "2        56     0.0000  \n",
+      "3        56    11.0014  \n",
+      "4        56    11.0014  \n"
+     ]
+    }
+   ],
+   "source": [
+    "train_data = pd.read_csv('/kaggle/input/bike-sharing-demand/train.csv')\n",
+    "test_data = pd.read_csv('/kaggle/input/bike-sharing-demand/test.csv')\n",
+    "\n",
+    "print(train_data.head())\n",
+    "print(test_data.head())\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "id": "ce24c53d",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-09-26T09:17:07.161738Z",
+     "iopub.status.busy": "2024-09-26T09:17:07.161033Z",
+     "iopub.status.idle": "2024-09-26T09:17:07.235642Z",
+     "shell.execute_reply": "2024-09-26T09:17:07.232576Z"
+    },
+    "papermill": {
+     "duration": 0.087862,
+     "end_time": "2024-09-26T09:17:07.241763",
+     "exception": false,
+     "start_time": "2024-09-26T09:17:07.153901",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "<class 'pandas.core.frame.DataFrame'>\n",
+      "RangeIndex: 10886 entries, 0 to 10885\n",
+      "Data columns (total 12 columns):\n",
+      " #   Column      Non-Null Count  Dtype  \n",
+      "---  ------      --------------  -----  \n",
+      " 0   datetime    10886 non-null  object \n",
+      " 1   season      10886 non-null  int64  \n",
+      " 2   holiday     10886 non-null  int64  \n",
+      " 3   workingday  10886 non-null  int64  \n",
+      " 4   weather     10886 non-null  int64  \n",
+      " 5   temp        10886 non-null  float64\n",
+      " 6   atemp       10886 non-null  float64\n",
+      " 7   humidity    10886 non-null  int64  \n",
+      " 8   windspeed   10886 non-null  float64\n",
+      " 9   casual      10886 non-null  int64  \n",
+      " 10  registered  10886 non-null  int64  \n",
+      " 11  count       10886 non-null  int64  \n",
+      "dtypes: float64(3), int64(8), object(1)\n",
+      "memory usage: 1020.7+ KB\n",
+      "datetime      0\n",
+      "season        0\n",
+      "holiday       0\n",
+      "workingday    0\n",
+      "weather       0\n",
+      "temp          0\n",
+      "atemp         0\n",
+      "humidity      0\n",
+      "windspeed     0\n",
+      "casual        0\n",
+      "registered    0\n",
+      "count         0\n",
+      "dtype: int64\n"
+     ]
+    }
+   ],
+   "source": [
+    "train_data.info()\n",
+    "\n",
+    "train_data.describe()\n",
+    "\n",
+    "print(train_data.isnull().sum())"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "id": "d32180cc",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-09-26T09:17:07.257422Z",
+     "iopub.status.busy": "2024-09-26T09:17:07.256640Z",
+     "iopub.status.idle": "2024-09-26T09:17:07.313410Z",
+     "shell.execute_reply": "2024-09-26T09:17:07.312107Z"
+    },
+    "papermill": {
+     "duration": 0.068264,
+     "end_time": "2024-09-26T09:17:07.316935",
+     "exception": false,
+     "start_time": "2024-09-26T09:17:07.248671",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>datetime</th>\n",
+       "      <th>season</th>\n",
+       "      <th>holiday</th>\n",
+       "      <th>workingday</th>\n",
+       "      <th>weather</th>\n",
+       "      <th>temp</th>\n",
+       "      <th>atemp</th>\n",
+       "      <th>humidity</th>\n",
+       "      <th>windspeed</th>\n",
+       "      <th>casual</th>\n",
+       "      <th>registered</th>\n",
+       "      <th>count</th>\n",
+       "      <th>hour</th>\n",
+       "      <th>day</th>\n",
+       "      <th>month</th>\n",
+       "      <th>year</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>2011-01-01 00:00:00</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>9.84</td>\n",
+       "      <td>14.395</td>\n",
+       "      <td>81</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>3</td>\n",
+       "      <td>13</td>\n",
+       "      <td>16</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>2011</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>2011-01-01 01:00:00</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>9.02</td>\n",
+       "      <td>13.635</td>\n",
+       "      <td>80</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>8</td>\n",
+       "      <td>32</td>\n",
+       "      <td>40</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>2011</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>2011-01-01 02:00:00</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>9.02</td>\n",
+       "      <td>13.635</td>\n",
+       "      <td>80</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>5</td>\n",
+       "      <td>27</td>\n",
+       "      <td>32</td>\n",
+       "      <td>2</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>2011</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>2011-01-01 03:00:00</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>9.84</td>\n",
+       "      <td>14.395</td>\n",
+       "      <td>75</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>3</td>\n",
+       "      <td>10</td>\n",
+       "      <td>13</td>\n",
+       "      <td>3</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>2011</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>2011-01-01 04:00:00</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>9.84</td>\n",
+       "      <td>14.395</td>\n",
+       "      <td>75</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>4</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>2011</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "             datetime  season  holiday  workingday  weather  temp   atemp  \\\n",
+       "0 2011-01-01 00:00:00       1        0           0        1  9.84  14.395   \n",
+       "1 2011-01-01 01:00:00       1        0           0        1  9.02  13.635   \n",
+       "2 2011-01-01 02:00:00       1        0           0        1  9.02  13.635   \n",
+       "3 2011-01-01 03:00:00       1        0           0        1  9.84  14.395   \n",
+       "4 2011-01-01 04:00:00       1        0           0        1  9.84  14.395   \n",
+       "\n",
+       "   humidity  windspeed  casual  registered  count  hour  day  month  year  \n",
+       "0        81        0.0       3          13     16     0    1      1  2011  \n",
+       "1        80        0.0       8          32     40     1    1      1  2011  \n",
+       "2        80        0.0       5          27     32     2    1      1  2011  \n",
+       "3        75        0.0       3          10     13     3    1      1  2011  \n",
+       "4        75        0.0       0           1      1     4    1      1  2011  "
+      ]
+     },
+     "execution_count": 4,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "#convert the datetime column to pandas datetime format\n",
+    "train_data['datetime'] = pd.to_datetime(train_data['datetime'])\n",
+    "\n",
+    "#extracting new features: hour, day, month, year\n",
+    "train_data['hour'] = train_data['datetime'].dt.hour\n",
+    "train_data['day'] = train_data['datetime'].dt.day\n",
+    "train_data['month'] = train_data['datetime'].dt.month\n",
+    "train_data['year'] = train_data['datetime'].dt.year\n",
+    "\n",
+    "#check the updated DataFrame\n",
+    "train_data.head()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "id": "07ecb2b1",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-09-26T09:17:07.334546Z",
+     "iopub.status.busy": "2024-09-26T09:17:07.333914Z",
+     "iopub.status.idle": "2024-09-26T09:17:07.365771Z",
+     "shell.execute_reply": "2024-09-26T09:17:07.364133Z"
+    },
+    "papermill": {
+     "duration": 0.04402,
+     "end_time": "2024-09-26T09:17:07.368836",
+     "exception": false,
+     "start_time": "2024-09-26T09:17:07.324816",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>season</th>\n",
+       "      <th>holiday</th>\n",
+       "      <th>workingday</th>\n",
+       "      <th>weather</th>\n",
+       "      <th>temp</th>\n",
+       "      <th>atemp</th>\n",
+       "      <th>humidity</th>\n",
+       "      <th>windspeed</th>\n",
+       "      <th>count</th>\n",
+       "      <th>hour</th>\n",
+       "      <th>day</th>\n",
+       "      <th>month</th>\n",
+       "      <th>year</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>9.84</td>\n",
+       "      <td>14.395</td>\n",
+       "      <td>81</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>16</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>2011</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>9.02</td>\n",
+       "      <td>13.635</td>\n",
+       "      <td>80</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>40</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>2011</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>9.02</td>\n",
+       "      <td>13.635</td>\n",
+       "      <td>80</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>32</td>\n",
+       "      <td>2</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>2011</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>9.84</td>\n",
+       "      <td>14.395</td>\n",
+       "      <td>75</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>13</td>\n",
+       "      <td>3</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>2011</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>9.84</td>\n",
+       "      <td>14.395</td>\n",
+       "      <td>75</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>4</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>2011</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "   season  holiday  workingday  weather  temp   atemp  humidity  windspeed  \\\n",
+       "0       1        0           0        1  9.84  14.395        81        0.0   \n",
+       "1       1        0           0        1  9.02  13.635        80        0.0   \n",
+       "2       1        0           0        1  9.02  13.635        80        0.0   \n",
+       "3       1        0           0        1  9.84  14.395        75        0.0   \n",
+       "4       1        0           0        1  9.84  14.395        75        0.0   \n",
+       "\n",
+       "   count  hour  day  month  year  \n",
+       "0     16     0    1      1  2011  \n",
+       "1     40     1    1      1  2011  \n",
+       "2     32     2    1      1  2011  \n",
+       "3     13     3    1      1  2011  \n",
+       "4      1     4    1      1  2011  "
+      ]
+     },
+     "execution_count": 5,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "#dropping irrelevant columns\n",
+    "train_data = train_data.drop(columns=['casual', 'registered', 'datetime'])\n",
+    "\n",
+    "#check the DataFrame to confirm\n",
+    "train_data.head()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 6,
+   "id": "fe1123e0",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-09-26T09:17:07.383779Z",
+     "iopub.status.busy": "2024-09-26T09:17:07.383077Z",
+     "iopub.status.idle": "2024-09-26T09:17:09.056918Z",
+     "shell.execute_reply": "2024-09-26T09:17:09.055626Z"
+    },
+    "papermill": {
+     "duration": 1.686119,
+     "end_time": "2024-09-26T09:17:09.061388",
+     "exception": false,
+     "start_time": "2024-09-26T09:17:07.375269",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "(8708, 12) (2178, 12) (8708,) (2178,)\n"
+     ]
+    }
+   ],
+   "source": [
+    "from sklearn.model_selection import train_test_split\n",
+    "\n",
+    "#Features (X) and target (y)\n",
+    "X = train_data.drop(columns=['count']) #Features\n",
+    "y = train_data['count'] #Target variable\n",
+    "\n",
+    "#splitting the dataset into training and validation sets\n",
+    "X_train, X_val, y_train, y_val = train_test_split(X, y, test_size = 0.2, random_state=42)\n",
+    "\n",
+    "#check the shapes of the resulting datasets\n",
+    "print(X_train.shape, X_val.shape, y_train.shape, y_val.shape)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 7,
+   "id": "9076ecf0",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-09-26T09:17:09.080255Z",
+     "iopub.status.busy": "2024-09-26T09:17:09.079453Z",
+     "iopub.status.idle": "2024-09-26T09:17:09.086927Z",
+     "shell.execute_reply": "2024-09-26T09:17:09.085505Z"
+    },
+    "papermill": {
+     "duration": 0.020443,
+     "end_time": "2024-09-26T09:17:09.090784",
+     "exception": false,
+     "start_time": "2024-09-26T09:17:09.070341",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "best_params = {\n",
+    "    'n_estimators': 50,  \n",
+    "    'max_depth': 30,\n",
+    "    'min_samples_leaf': 2,\n",
+    "    'bootstrap': True  \n",
+    "}"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 8,
+   "id": "2fbd4cd6",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-09-26T09:17:09.108288Z",
+     "iopub.status.busy": "2024-09-26T09:17:09.107752Z",
+     "iopub.status.idle": "2024-09-26T09:17:11.126866Z",
+     "shell.execute_reply": "2024-09-26T09:17:11.125652Z"
+    },
+    "papermill": {
+     "duration": 2.030283,
+     "end_time": "2024-09-26T09:17:11.129416",
+     "exception": false,
+     "start_time": "2024-09-26T09:17:09.099133",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<style>#sk-container-id-1 {color: black;background-color: white;}#sk-container-id-1 pre{padding: 0;}#sk-container-id-1 div.sk-toggleable {background-color: white;}#sk-container-id-1 label.sk-toggleable__label {cursor: pointer;display: block;width: 100%;margin-bottom: 0;padding: 0.3em;box-sizing: border-box;text-align: center;}#sk-container-id-1 label.sk-toggleable__label-arrow:before {content: \"▸\";float: left;margin-right: 0.25em;color: #696969;}#sk-container-id-1 label.sk-toggleable__label-arrow:hover:before {color: black;}#sk-container-id-1 div.sk-estimator:hover label.sk-toggleable__label-arrow:before {color: black;}#sk-container-id-1 div.sk-toggleable__content {max-height: 0;max-width: 0;overflow: hidden;text-align: left;background-color: #f0f8ff;}#sk-container-id-1 div.sk-toggleable__content pre {margin: 0.2em;color: black;border-radius: 0.25em;background-color: #f0f8ff;}#sk-container-id-1 input.sk-toggleable__control:checked~div.sk-toggleable__content {max-height: 200px;max-width: 100%;overflow: auto;}#sk-container-id-1 input.sk-toggleable__control:checked~label.sk-toggleable__label-arrow:before {content: \"▾\";}#sk-container-id-1 div.sk-estimator input.sk-toggleable__control:checked~label.sk-toggleable__label {background-color: #d4ebff;}#sk-container-id-1 div.sk-label input.sk-toggleable__control:checked~label.sk-toggleable__label {background-color: #d4ebff;}#sk-container-id-1 input.sk-hidden--visually {border: 0;clip: rect(1px 1px 1px 1px);clip: rect(1px, 1px, 1px, 1px);height: 1px;margin: -1px;overflow: hidden;padding: 0;position: absolute;width: 1px;}#sk-container-id-1 div.sk-estimator {font-family: monospace;background-color: #f0f8ff;border: 1px dotted black;border-radius: 0.25em;box-sizing: border-box;margin-bottom: 0.5em;}#sk-container-id-1 div.sk-estimator:hover {background-color: #d4ebff;}#sk-container-id-1 div.sk-parallel-item::after {content: \"\";width: 100%;border-bottom: 1px solid gray;flex-grow: 1;}#sk-container-id-1 div.sk-label:hover label.sk-toggleable__label {background-color: #d4ebff;}#sk-container-id-1 div.sk-serial::before {content: \"\";position: absolute;border-left: 1px solid gray;box-sizing: border-box;top: 0;bottom: 0;left: 50%;z-index: 0;}#sk-container-id-1 div.sk-serial {display: flex;flex-direction: column;align-items: center;background-color: white;padding-right: 0.2em;padding-left: 0.2em;position: relative;}#sk-container-id-1 div.sk-item {position: relative;z-index: 1;}#sk-container-id-1 div.sk-parallel {display: flex;align-items: stretch;justify-content: center;background-color: white;position: relative;}#sk-container-id-1 div.sk-item::before, #sk-container-id-1 div.sk-parallel-item::before {content: \"\";position: absolute;border-left: 1px solid gray;box-sizing: border-box;top: 0;bottom: 0;left: 50%;z-index: -1;}#sk-container-id-1 div.sk-parallel-item {display: flex;flex-direction: column;z-index: 1;position: relative;background-color: white;}#sk-container-id-1 div.sk-parallel-item:first-child::after {align-self: flex-end;width: 50%;}#sk-container-id-1 div.sk-parallel-item:last-child::after {align-self: flex-start;width: 50%;}#sk-container-id-1 div.sk-parallel-item:only-child::after {width: 0;}#sk-container-id-1 div.sk-dashed-wrapped {border: 1px dashed gray;margin: 0 0.4em 0.5em 0.4em;box-sizing: border-box;padding-bottom: 0.4em;background-color: white;}#sk-container-id-1 div.sk-label label {font-family: monospace;font-weight: bold;display: inline-block;line-height: 1.2em;}#sk-container-id-1 div.sk-label-container {text-align: center;}#sk-container-id-1 div.sk-container {/* jupyter's `normalize.less` sets `[hidden] { display: none; }` but bootstrap.min.css set `[hidden] { display: none !important; }` so we also need the `!important` here to be able to override the default hidden behavior on the sphinx rendered scikit-learn.org. See: https://github.com/scikit-learn/scikit-learn/issues/21755 */display: inline-block !important;position: relative;}#sk-container-id-1 div.sk-text-repr-fallback {display: none;}</style><div id=\"sk-container-id-1\" class=\"sk-top-container\"><div class=\"sk-text-repr-fallback\"><pre>RandomForestRegressor(max_depth=30, min_samples_leaf=2, n_estimators=50)</pre><b>In a Jupyter environment, please rerun this cell to show the HTML representation or trust the notebook. <br />On GitHub, the HTML representation is unable to render, please try loading this page with nbviewer.org.</b></div><div class=\"sk-container\" hidden><div class=\"sk-item\"><div class=\"sk-estimator sk-toggleable\"><input class=\"sk-toggleable__control sk-hidden--visually\" id=\"sk-estimator-id-1\" type=\"checkbox\" checked><label for=\"sk-estimator-id-1\" class=\"sk-toggleable__label sk-toggleable__label-arrow\">RandomForestRegressor</label><div class=\"sk-toggleable__content\"><pre>RandomForestRegressor(max_depth=30, min_samples_leaf=2, n_estimators=50)</pre></div></div></div></div></div>"
+      ],
+      "text/plain": [
+       "RandomForestRegressor(max_depth=30, min_samples_leaf=2, n_estimators=50)"
+      ]
+     },
+     "execution_count": 8,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "from sklearn.ensemble import RandomForestRegressor\n",
+    "from sklearn.metrics import mean_squared_log_error\n",
+    "import numpy as np\n",
+    "\n",
+    "# Initialize the Random Forest model with best parameters\n",
+    "model = RandomForestRegressor(\n",
+    "    n_estimators=best_params['n_estimators'],\n",
+    "    max_depth=best_params['max_depth'],\n",
+    "    min_samples_leaf=best_params['min_samples_leaf'],\n",
+    "    bootstrap=best_params['bootstrap']\n",
+    ")\n",
+    "\n",
+    "# Fit the model on the training data\n",
+    "model.fit(X_train, y_train)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 9,
+   "id": "d217d751",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-09-26T09:17:11.146060Z",
+     "iopub.status.busy": "2024-09-26T09:17:11.145556Z",
+     "iopub.status.idle": "2024-09-26T09:17:11.164523Z",
+     "shell.execute_reply": "2024-09-26T09:17:11.163003Z"
+    },
+    "papermill": {
+     "duration": 0.031097,
+     "end_time": "2024-09-26T09:17:11.167816",
+     "exception": false,
+     "start_time": "2024-09-26T09:17:11.136719",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "#convert the datetime column to pandas datetime format\n",
+    "test_data['datetime'] = pd.to_datetime(test_data['datetime'])\n",
+    "\n",
+    "#extracting new features: hour, day, month, year\n",
+    "test_data['hour'] = test_data['datetime'].dt.hour\n",
+    "test_data['day'] = test_data['datetime'].dt.day\n",
+    "test_data['month'] = test_data['datetime'].dt.month\n",
+    "test_data['year'] = test_data['datetime'].dt.year"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 10,
+   "id": "9446f310",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-09-26T09:17:11.183431Z",
+     "iopub.status.busy": "2024-09-26T09:17:11.182909Z",
+     "iopub.status.idle": "2024-09-26T09:17:11.243594Z",
+     "shell.execute_reply": "2024-09-26T09:17:11.242401Z"
+    },
+    "papermill": {
+     "duration": 0.072094,
+     "end_time": "2024-09-26T09:17:11.246682",
+     "exception": false,
+     "start_time": "2024-09-26T09:17:11.174588",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "# Keep 'datetime' for submission, but do not use it in prediction\n",
+    "test_data_for_model = test_data.drop(columns=['datetime'])  # Drop 'datetime' for model input\n",
+    "\n",
+    "# reorder columns or add missing columns, like in your training data\n",
+    "missing_cols = set(X_train.columns) - set(test_data_for_model.columns)\n",
+    "for col in missing_cols:\n",
+    "    test_data_for_model[col] = 0  # Add missing columns with default value 0\n",
+    "\n",
+    "test_data_for_model = test_data_for_model[X_train.columns]  # Reorder columns to match training\n",
+    "\n",
+    "# Make predictions using the trained model\n",
+    "predictions = model.predict(test_data_for_model)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 11,
+   "id": "915c280f",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-09-26T09:17:11.262519Z",
+     "iopub.status.busy": "2024-09-26T09:17:11.261970Z",
+     "iopub.status.idle": "2024-09-26T09:17:11.314860Z",
+     "shell.execute_reply": "2024-09-26T09:17:11.313543Z"
+    },
+    "papermill": {
+     "duration": 0.064876,
+     "end_time": "2024-09-26T09:17:11.318378",
+     "exception": false,
+     "start_time": "2024-09-26T09:17:11.253502",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "# Prepare the submission file\n",
+    "submission = pd.DataFrame({\n",
+    "    \"datetime\": test_data[\"datetime\"],  # Use 'datetime' from the test set\n",
+    "    \"count\": predictions  # Use the predictions as 'count'\n",
+    "})\n",
+    "\n",
+    "# Clip predictions to avoid negative values\n",
+    "submission[\"count\"] = submission[\"count\"].clip(lower=0)\n",
+    "\n",
+    "# Save the submission file\n",
+    "submission.to_csv('submission.csv', index=False)"
+   ]
+  }
+ ],
+ "metadata": {
+  "kaggle": {
+   "accelerator": "none",
+   "dataSources": [
+    {
+     "databundleVersionId": 32624,
+     "sourceId": 3948,
+     "sourceType": "competition"
+    }
+   ],
+   "dockerImageVersionId": 30761,
+   "isGpuEnabled": false,
+   "isInternetEnabled": false,
+   "language": "python",
+   "sourceType": "notebook"
+  },
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.10.14"
+  },
+  "papermill": {
+   "default_parameters": {},
+   "duration": 9.849642,
+   "end_time": "2024-09-26T09:17:12.250306",
+   "environment_variables": {},
+   "exception": null,
+   "input_path": "__notebook__.ipynb",
+   "output_path": "__notebook__.ipynb",
+   "parameters": {},
+   "start_time": "2024-09-26T09:17:02.400664",
+   "version": "2.6.0"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}
